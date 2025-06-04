@@ -102,7 +102,7 @@ bool ECE140_MQTT::subscribeEvent() {
 }
 
 bool ECE140_MQTT::subscribeProfileSwap() {
-    String fullTopic = "event/" + _eventId + "/handshake_success/#";  
+    String fullTopic = "event/" + _eventId + "/profile_swap/#";  
     
     if (_mqttClient->subscribe(fullTopic.c_str())) {
         Serial.println("[MQTT] Subscribed successfully to profile swap");
@@ -123,6 +123,10 @@ void ECE140_MQTT::handleMessage(char* topic, uint8_t* payload, unsigned int leng
     // Serial.println("=== MQTT DEBUG ===");
     // Serial.println("Topic: " + topicStr);
     // Serial.println("Payload: " + message);
+    // Serial.println(topicStr.substring(0, 23));
+    // Serial.println("event/" + _eventId + "/profile_swap" == topicStr.substring(0, 23));
+    // Serial.println(topicStr.substring(23));
+    // Serial.println(topicStr.substring(23) == _ticketId);
     // Serial.println("==================");
     
     if (topicStr == "device/" + _clientId + "/assignment") {
@@ -140,8 +144,8 @@ void ECE140_MQTT::handleMessage(char* topic, uint8_t* payload, unsigned int leng
         publishReceipt("reboot", "acknowledged");
         delay(100);
         ESP.restart();
-    } else if (topicStr.substring(0, 22) == "event/" + _eventId + "/profile_swap") {
-        if(topicStr.substring(23) == _ticketId){
+    } else if (topicStr.substring(0, 23) == "event/" + _eventId + "/profile_swap") {
+        if(topicStr.substring(24) == _ticketId){
             _profileSwap = true;
         }
     } 

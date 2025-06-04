@@ -197,6 +197,7 @@ void loop() {
     // Check for profile swaps and provide haptic feedback if detected
     if(mqtt.profileSwap()){
         activateFeedback(255, 500);
+        mqtt.publishReceipt("Haptic feedback", "success");
         mqtt.resetProfileSwapFlag();
     }
 
