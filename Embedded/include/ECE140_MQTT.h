@@ -17,6 +17,7 @@ private:
     PubSubClient* _mqttClient;
     bool _ticketReset = false;
     bool _nfcReset = false;
+    bool _profileSwap = false;
 
 public:
     ECE140_MQTT();
@@ -35,6 +36,9 @@ public:
     bool nfcReset();
     void resetNfcFlag();
     void resetTicketFlag();
+    bool subscribeProfileSwap();
+    bool profileSwap();
+    void resetProfileSwapFlag();
     String getTicketID();
 };
 

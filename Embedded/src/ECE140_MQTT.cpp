@@ -101,6 +101,18 @@ bool ECE140_MQTT::subscribeEvent() {
     }
 }
 
+bool ECE140_MQTT::subscribeProfileSwap() {
+    String fullTopic = "event/" + _eventId + "/handshake_success/#";  
+    
+    if (_mqttClient->subscribe(fullTopic.c_str())) {
+        Serial.println("[MQTT] Subscribed successfully to profile swap");
+        return true;
+    } else {
+        Serial.println("[MQTT] Failed to subscribe to profile swap");
+        return false;
+    }
+}
+
 void ECE140_MQTT::handleMessage(char* topic, uint8_t* payload, unsigned int length) {
     String topicStr = String(topic);
     String message = "";
@@ -117,6 +129,7 @@ void ECE140_MQTT::handleMessage(char* topic, uint8_t* payload, unsigned int leng
         _ticketId = message;
     } else if(topicStr == "device/" + _clientId + "/reboot"){
         publishReceipt("reboot", "acknowledged");
+        delay(100);
         ESP.restart();
     } else if(topicStr == "device/" + _clientId + "/reassignment"){
          _ticketId = message;
@@ -125,8 +138,13 @@ void ECE140_MQTT::handleMessage(char* topic, uint8_t* payload, unsigned int leng
          _nfcReset = true;
     } else if (topicStr == "event/" + _eventId + "/reboot") {
         publishReceipt("reboot", "acknowledged");
+        delay(100);
         ESP.restart();
-    }
+    } else if (topicStr.substring(0, 22) == "event/" + _eventId + "/profile_swap") {
+        if(topicStr.substring(23) == _ticketId){
+            _profileSwap = true;
+        }
+    } 
 }
 
 void ECE140_MQTT::setCallback(void (*callback)(char*, uint8_t*, unsigned int)) {
@@ -165,4 +183,12 @@ void ECE140_MQTT::resetNfcFlag(){
 
 void ECE140_MQTT::resetTicketFlag(){
     _ticketReset = !_ticketReset;
+}
+
+bool ECE140_MQTT::profileSwap(){
+   return _profileSwap;
+}
+
+void ECE140_MQTT::resetProfileSwapFlag(){
+   _profileSwap = !_profileSwap;
 }

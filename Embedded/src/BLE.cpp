@@ -45,11 +45,11 @@ void BLE::onResult(const NimBLEAdvertisedDevice* device) {
         std::string payloadStr(payload.begin(), payload.end()); 
         String payloadArdStr = String(payloadStr.substr(2, 21).c_str());
 
-        Serial.println("Detected RSSI: " + String(device->getRSSI()) + " Threshold: " + String(_RSSI_THRESHOLD));
+        //Serial.println("Detected RSSI: " + String(device->getRSSI()) + " Threshold: " + String(_RSSI_THRESHOLD));
         //Serial.println(device->getRSSI() > _RSSI_THRESHOLD);
 
         if(payloadArdStr.substring(2,8) == _identifier && payloadArdStr.substring(8,12) == _eventId && device->getRSSI() > _RSSI_THRESHOLD) {
-            Serial.println("Valid advertisement detected from: " + String(device->getName().c_str()));
+            //Serial.println("Valid advertisement detected from: " + String(device->getName().c_str()));
             String detectedTicket = payloadArdStr.substring(12,21);
             String rssi = String(device->getRSSI());
             bool found = false;
@@ -63,7 +63,7 @@ void BLE::onResult(const NimBLEAdvertisedDevice* device) {
             if (!found) {  
                 std::vector<String> newPacket = {detectedTicket, rssi};
                 _incomingPackets.push_back(newPacket); 
-                Serial.println("Detected ticket: " + detectedTicket + " RSSI: " + rssi);
+                //Serial.println("Detected ticket: " + detectedTicket + " RSSI: " + rssi);
             } 
 
             if (_collecting && (millis() - _collectionStart >= _COLLECTION_TIME)) {
@@ -81,11 +81,11 @@ void BLE::onResult(const NimBLEAdvertisedDevice* device) {
                         }
                     }
                     _detectedTicket = strongest[0];
-                    Serial.println("Strongest signal: " + strongest[0] + " at " + strongest[1] + "dBm");
+                    //Serial.println("Strongest signal: " + strongest[0] + " at " + strongest[1] + "dBm");
                     _stopScanning();
                     _stopAdvertising();
                 } else {
-                Serial.println("No devices detected");
+                //Serial.println("No devices detected");
                 _stopScanning();
                 _stopAdvertising();
                 }

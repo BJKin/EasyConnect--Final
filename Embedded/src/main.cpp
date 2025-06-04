@@ -1,6 +1,7 @@
 #include "ECE140_WIFI.h"
 #include "ECE140_MQTT.h"
 #include "BLE.h"
+#include "Handshake.h"
 #include <Adafruit_BNO055.h>
 #include <SparkFun_ST25DV64KC_Arduino_Library.h>
 #include <algorithm>
@@ -20,8 +21,7 @@ const char* ucsdWifi = ENTERPRISE_WIFI_SSID;
 const char* wifiSsid = WIFI_SSID;
 const char* nonEnterpriseWifiPassword = NON_ENTERPRISE_WIFI_PASSWORD;
 
-// Instantiate to NFC/IMU
-Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
+// Instantiate to NFC
 SFE_ST25DV64KC_NDEF tag;
 
 //Instantiate WiFi/MQTT/BLE
@@ -54,6 +54,11 @@ const int MOTOR_PIN = 1;
 unsigned long buzzTime = 0;
 unsigned long buzzDuration = 0;
 
+// IMU/TensorFlow
+Handshake handshake;
+unsigned long timeDetected = 0;
+
+// Haptic feedback
 void setupFeedback(){
     ledcAttach(MOTOR_PIN, pwmFrequency, pwmBitResolution);
 }
@@ -89,18 +94,11 @@ void setup() {
         mqtt.publishAvailability();
         mqtt.subscribeDevice();
         mqtt.subscribeEvent();
+        mqtt.subscribeProfileSwap();
         mqtt.publishReceipt("connect", "success");
         Serial.println("Connected to MQTT broker");
     } else {
         Serial.println("Failed to connect to MQTT broker");
-    }
-
-    // Connect to IMU
-    if (!bno.begin()){
-        Serial.print("IMU not detected");
-        while (1);
-    } else {
-        Serial.println("IMU detected");
     }
 
     // Connect to NFC tag
@@ -131,7 +129,8 @@ void loop() {
         assigned = true;
         ble.setTicketId(ticketId);
         ble.setEventId(eventId);
-        activateFeedback(255, 500);
+        handshake.init();
+        activateFeedback(255, 1000);
     }
 
     // Write ticket URL to NFC tag 
@@ -147,14 +146,30 @@ void loop() {
     }
 
     // Detect if a Handshake has occurred
-    // if(assigned && !handshakeDetected) {
-    //     imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-    //     imu::Quaternion quat = bno.getQuat();
-    //     imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-    // }
+    if(assigned && !handshakeDetected) {
+        handshake.collectData();
+        std::vector<std::vector<float>> predictions = handshake.processData();
+
+        if (predictions.empty() || predictions[0].empty() || predictions[0][1] < 0.5) {
+            return;
+        } else if((int)predictions[0][0] == 4 && predictions[0][1] > 0.9) {
+            handshakeDetected = true;
+            timeDetected = millis();
+            // Serial.println("Handshake detected!");
+            mqtt.publishReceipt("handshake", "success");
+            handshake.clearBuffer();
+        }
+    }
+
+    // Handshake detected debounce of 2 seconds
+    if(handshakeDetected){
+        if(millis() - timeDetected >= 1250){
+            handshakeDetected = false;
+        }
+    }
 
     // If the IMU detects a handshake, advertise/scan over BLE to find the ticket ID of the other device
-    if(handshakeDetected && !BLEstarted){
+    if(assigned && !BLEstarted && handshakeDetected){
         ble.advertise();
         ble.scan();
         BLEstarted = true;
@@ -171,12 +186,19 @@ void loop() {
         mqtt.publishHandshake(foundId);
         mqtt.publishReceipt("profile exchange", "success");
         deviceFound = false;
-        activateFeedback(255, 1000);
         profileExchanged = true;
-    }
+        BLEstarted = false;
+        handshakeDetected = false;
+    } 
 
     // Turn off the feedback
     deactivateFeedback();
+
+    // Check for profile swaps and provide haptic feedback if detected
+    if(mqtt.profileSwap()){
+        activateFeedback(255, 500);
+        mqtt.resetProfileSwapFlag();
+    }
 
     // Check for ticket reassignment
     if(mqtt.ticketReset()){
