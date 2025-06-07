@@ -11,12 +11,7 @@ private:
     String _eventId;
     String _detectedTicket;
     String _identifier;
-    static const int _RSSI_THRESHOLD = -67;
-    unsigned long _collectionStart;
-    bool _collecting;
-    static const unsigned long _COLLECTION_TIME = 500; 
-    void _stopAdvertising();
-    void _stopScanning();
+    static const int _RSSI_THRESHOLD = -60;
 
 public:
     BLE();
@@ -27,7 +22,11 @@ public:
     void scan();
     void onResult(const NimBLEAdvertisedDevice* advertisedDevice) override;
     String getDetectedTicket();
-    
+    void stopAdvertising();
+    void stopScanning();
+    std::vector<std::vector<String>> getIncomingPackets();
+    void setTicket(String ticket);
+
 };
 
 #endif

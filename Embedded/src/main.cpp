@@ -46,6 +46,8 @@ bool profileExchanged = false;
 String foundId;
 String prevId;
 std::vector<String> detectedTickets;
+unsigned long collectionStart = 0;
+static const unsigned long COLLECTION_TIME = 500; 
 
 // Buzzer
 const int pwmBitResolution = 8;
@@ -81,8 +83,8 @@ void setup() {
     Wire.begin();
 
     // Connect to WiFi
-    // wifi.connectToWPAEnterprise(ucsdWifi, ucsdUsername, ucsdPassword);
-    wifi.connectToWiFi(WIFI_SSID, NON_ENTERPRISE_WIFI_PASSWORD);
+    wifi.connectToWPAEnterprise("UCSD-PROTECTED", "bkinsella", "Honda884!#11");
+    // wifi.connectToWiFi("Aaron's eye phone", "wifipass");
     macAddress = WiFi.macAddress();
     eventId = EVENT_ID;
 
@@ -173,7 +175,36 @@ void loop() {
         ble.advertise();
         ble.scan();
         BLEstarted = true;
+        collectionStart = millis();
+        Serial.println("Started BLE");
     }
+
+    // If BLE is started, collect the strongest signal from the incoming packets
+    if(BLEstarted){
+        if (millis() - collectionStart <= COLLECTION_TIME) {
+            Serial.println("In collection loop");
+                if (!ble.getIncomingPackets().empty()) {
+                    std::vector<String> strongest = ble.getIncomingPackets()[0];
+                
+                    for (size_t i = 1; i < ble.getIncomingPackets().size(); i++) {
+                        int currentRssi = ble.getIncomingPackets()[i][1].toInt(); 
+                        int strongestRssi = strongest[1].toInt();
+                    
+                        if (currentRssi > strongestRssi) {
+                            strongest = ble.getIncomingPackets()[i];
+                        }
+                    }
+                    ble.setTicket(strongest[0]);
+                    Serial.println("Strongest signal: " + strongest[0] + " at " + strongest[1] + "dBm");
+                } 
+        } else if(millis() - collectionStart >= COLLECTION_TIME){
+            Serial.println("Stopped collection loop");
+            ble.stopScanning();
+            ble.stopAdvertising();
+            BLEstarted = true;
+        }
+    }
+
 
     //If the BLE scan found a device, upload the associated ticket ID to the MQTT server
     if((ble.getDetectedTicket() != "" ||  prevId != ble.getDetectedTicket()) && !deviceFound) {
