@@ -11,7 +11,7 @@ private:
     String _eventId;
     String _detectedTicket;
     String _identifier;
-    static const int _RSSI_THRESHOLD = -60;
+    static const int _RSSI_THRESHOLD = -70;
 
 public:
     BLE();
@@ -26,7 +26,7 @@ public:
     void stopScanning();
     std::vector<std::vector<String>> getIncomingPackets();
     void setTicket(String ticket);
-
+    String getRSSI(const NimBLEAdvertisedDevice* device);
 };
 
 #endif

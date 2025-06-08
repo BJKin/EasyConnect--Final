@@ -47,7 +47,7 @@ String foundId;
 String prevId;
 std::vector<String> detectedTickets;
 unsigned long collectionStart = 0;
-static const unsigned long COLLECTION_TIME = 500; 
+static const unsigned long COLLECTION_TIME = 1000; 
 
 // Buzzer
 const int pwmBitResolution = 8;
@@ -77,14 +77,23 @@ void deactivateFeedback() {
     }
 }
 
+//Turn on the external antenna
+void turnOnAntenna() {
+    pinMode(3, OUTPUT); 
+    digitalWrite(3, LOW);  
+    pinMode(14, OUTPUT);  
+    digitalWrite(14, HIGH); 
+    Serial.println("External antenna turned on");
+}
+
 void setup() {
     delay(1000);
     Serial.begin(115200);
     Wire.begin();
 
     // Connect to WiFi
-    wifi.connectToWPAEnterprise("UCSD-PROTECTED", "bkinsella", "Honda884!#11");
-    // wifi.connectToWiFi("Aaron's eye phone", "wifipass");
+    // wifi.connectToWPAEnterprise("UCSD-PROTECTED", "bkinsella", "Honda884!#11");
+    wifi.connectToWiFi(WIFI_SSID, NON_ENTERPRISE_WIFI_PASSWORD);
     macAddress = WiFi.macAddress();
     eventId = EVENT_ID;
 
@@ -117,6 +126,9 @@ void setup() {
 
     // Set up Haptic feedback
     setupFeedback();
+
+    // Turn on external antenna
+    turnOnAntenna();
 }
 
 
@@ -147,62 +159,60 @@ void loop() {
         }
     }
 
-    // Detect if a Handshake has occurred
-    if(assigned && !handshakeDetected) {
+    // If assigned, collect data from the IMU
+    if(assigned) {
         handshake.collectData();
+    }
+
+    // Process the IMU data and determine if a handshake is detected
+    if(assigned && !handshakeDetected) {
         std::vector<std::vector<float>> predictions = handshake.processData();
 
-        if (predictions.empty() || predictions[0].empty() || predictions[0][1] < 0.5) {
-            return;
-        } else if((int)predictions[0][0] == 4 && predictions[0][1] > 0.9) {
+        if(!predictions.empty() && (int)predictions[0][0] == 4 && predictions[0][1] > 0.9) {
             handshakeDetected = true;
             timeDetected = millis();
             // Serial.println("Handshake detected!");
             mqtt.publishReceipt("handshake", "success");
-            handshake.clearBuffer();
         }
     }
 
     // Handshake detected debounce of 2 seconds
     if(handshakeDetected){
-        if(millis() - timeDetected >= 1250){
+        if(millis() - timeDetected >= 2000){
             handshakeDetected = false;
         }
     }
 
     // If the IMU detects a handshake, advertise/scan over BLE to find the ticket ID of the other device
-    if(assigned && !BLEstarted && handshakeDetected){
+    if(assigned && !BLEstarted && handshakeDetected) {
         ble.advertise();
         ble.scan();
         BLEstarted = true;
         collectionStart = millis();
-        Serial.println("Started BLE");
     }
 
     // If BLE is started, collect the strongest signal from the incoming packets
     if(BLEstarted){
-        if (millis() - collectionStart <= COLLECTION_TIME) {
-            Serial.println("In collection loop");
-                if (!ble.getIncomingPackets().empty()) {
-                    std::vector<String> strongest = ble.getIncomingPackets()[0];
-                
-                    for (size_t i = 1; i < ble.getIncomingPackets().size(); i++) {
-                        int currentRssi = ble.getIncomingPackets()[i][1].toInt(); 
-                        int strongestRssi = strongest[1].toInt();
-                    
-                        if (currentRssi > strongestRssi) {
-                            strongest = ble.getIncomingPackets()[i];
-                        }
-                    }
-                    ble.setTicket(strongest[0]);
-                    Serial.println("Strongest signal: " + strongest[0] + " at " + strongest[1] + "dBm");
-                } 
-        } else if(millis() - collectionStart >= COLLECTION_TIME){
-            Serial.println("Stopped collection loop");
+        if(millis() - collectionStart >= COLLECTION_TIME){
             ble.stopScanning();
             ble.stopAdvertising();
-            BLEstarted = true;
+            BLEstarted = false;
         }
+
+        if (!ble.getIncomingPackets().empty()) {
+            std::vector<String> strongest = ble.getIncomingPackets()[0];
+        
+            for (size_t i = 1; i < ble.getIncomingPackets().size(); i++) {
+                int currentRssi = ble.getIncomingPackets()[i][1].toInt(); 
+                int strongestRssi = strongest[1].toInt();
+            
+                if (currentRssi > strongestRssi) {
+                    strongest = ble.getIncomingPackets()[i];
+                }
+            }
+            ble.setTicket(strongest[0]);
+            // Serial.println("Strongest signal: " + strongest[0] + " at " + strongest[1] + "dBm");
+        } 
     }
 
 
@@ -219,7 +229,6 @@ void loop() {
         deviceFound = false;
         profileExchanged = true;
         BLEstarted = false;
-        handshakeDetected = false;
     } 
 
     // Turn off the feedback

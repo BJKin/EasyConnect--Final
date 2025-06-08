@@ -148,25 +148,27 @@ void Handshake::clearBuffer(){
     }
 }
 
-// String predicted_class_str;
-// switch ((int)predictions[0][0]) {
-//     case 0: predicted_class_str = "dancing"; break;
-//     case 1: predicted_class_str = "dapup"; break;
-//     case 2: predicted_class_str = "fistbump"; break;
-//     case 3: predicted_class_str = "flapping"; break;
-//     case 4: predicted_class_str = "handshake"; break;
-//     case 5: predicted_class_str = "highfive"; break;
-//     case 6: predicted_class_str = "scratch"; break;
-//     case 7: predicted_class_str = "speedwalking"; break;
-//     case 8: predicted_class_str = "still"; break;
-//     case 9: predicted_class_str = "stretch"; break;
-//     case 10: predicted_class_str = "walking"; break;
-//     case 11: predicted_class_str = "waving"; break;
-//     default: break;
-// }
+// if(!predictions.empty()){
+//     String predicted_class_str;
+//     switch ((int)predictions[0][0]) {
+//         case 0: predicted_class_str = "dancing"; break;
+//         case 1: predicted_class_str = "dapup"; break;
+//         case 2: predicted_class_str = "fistbump"; break;
+//         case 3: predicted_class_str = "flapping"; break;
+//         case 4: predicted_class_str = "handshake"; break;
+//         case 5: predicted_class_str = "highfive"; break;
+//         case 6: predicted_class_str = "scratch"; break;
+//         case 7: predicted_class_str = "speedwalking"; break;
+//         case 8: predicted_class_str = "still"; break;
+//         case 9: predicted_class_str = "stretch"; break;
+//         case 10: predicted_class_str = "walking"; break;
+//         case 11: predicted_class_str = "waving"; break;
+//         default: break;
+//     }
 
-// Serial.print("Predicted: ");
-// Serial.print(predicted_class_str);
-// Serial.print(" (");
-// Serial.print(predictions[0][1] * 100, 1);
-// Serial.println("%)");
+//     Serial.print("Predicted: ");
+//     Serial.print(predicted_class_str);
+//     Serial.print(" (");
+//     Serial.print(predictions[0][1] * 100, 1);
+//     Serial.println("%)");
+// }

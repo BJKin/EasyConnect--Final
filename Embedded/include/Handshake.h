@@ -20,7 +20,7 @@ private:
     int _samples_collected;         
     unsigned long _last_sample_time; 
     unsigned long  _last_process_time;
-    static const unsigned long _PROCESS_INTERVAL = 1000; 
+    static const unsigned long _PROCESS_INTERVAL = 1250; 
 
     static const int _TENSOR_ARENA_SIZE = 80 * 1024; 
     uint8_t* _tensor_arena;

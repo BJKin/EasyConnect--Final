@@ -16,7 +16,7 @@ void BLE::advertise(){
 
     bool started = adv->start();
     if (started) {
-        Serial.println("Advertising started successfully");
+       // Serial.println("Advertising started successfully");
     } else {
         //Serial.println("Failed to start advertising");
     }
@@ -27,7 +27,7 @@ void BLE::scan() {
     scan -> setScanCallbacks(this);
 
     if(scan->start(0, false)){
-        Serial.println("Scanning started successfully");
+       // Serial.println("Scanning started successfully");
     } else {
         //Serial.println("Failed to start scanning");
     }
@@ -39,11 +39,11 @@ void BLE::onResult(const NimBLEAdvertisedDevice* device) {
         std::string payloadStr(payload.begin(), payload.end()); 
         String payloadArdStr = String(payloadStr.substr(2, 21).c_str());
 
-        Serial.println("Detected RSSI: " + String(device->getRSSI()) + " Threshold: " + String(_RSSI_THRESHOLD));
-        Serial.println(device->getRSSI() > _RSSI_THRESHOLD);
+        // Serial.println(device->getRSSI() > _RSSI_THRESHOLD);
 
         if(payloadArdStr.substring(2,8) == _identifier && payloadArdStr.substring(8,12) == _eventId && device->getRSSI() > _RSSI_THRESHOLD) {
-            Serial.println("Valid advertisement detected from: " + String(device->getName().c_str()));
+            // Serial.println("Detected RSSI: " + String(device->getRSSI()) + " Threshold: " + String(_RSSI_THRESHOLD));
+            // Serial.println("Valid advertisement detected from: " + String(device->getName().c_str()));
             String detectedTicket = payloadArdStr.substring(12,21);
             String rssi = String(device->getRSSI());
             bool found = false;
@@ -57,7 +57,7 @@ void BLE::onResult(const NimBLEAdvertisedDevice* device) {
             if (!found) {  
                 std::vector<String> newPacket = {detectedTicket, rssi};
                 _incomingPackets.push_back(newPacket); 
-                Serial.println("Detected ticket: " + detectedTicket + " RSSI: " + rssi);
+                // Serial.println("Detected ticket: " + detectedTicket + " RSSI: " + rssi);
             } 
         }
     }
@@ -78,14 +78,14 @@ void BLE::setEventId(String eventID){
 void BLE::stopAdvertising() {
     NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
     adv->stop();
-    Serial.println("Advertising stopped");
+    // Serial.println("Advertising stopped");
 }
 
 void BLE::stopScanning() {
     NimBLEScan* scan = NimBLEDevice::getScan();
     scan->stop();
     _incomingPackets.clear();
-    Serial.println("Scanning stopped");
+    // Serial.println("Scanning stopped");
 }
 
 std::vector<std::vector<String>> BLE::getIncomingPackets() {
@@ -95,4 +95,3 @@ std::vector<std::vector<String>> BLE::getIncomingPackets() {
 void BLE::setTicket(String ticket) {
     _detectedTicket = ticket;
 }
-
