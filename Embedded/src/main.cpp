@@ -92,7 +92,7 @@ void setup() {
     Wire.begin();
 
     // Connect to WiFi
-    // wifi.connectToWPAEnterprise("UCSD-PROTECTED", "bkinsella", "Honda884!#11");
+    // wifi.connectToWPAEnterprise(ENTERPRISE_WIFI_SSID, ucsdUsername, ucsdPassword);
     wifi.connectToWiFi(WIFI_SSID, NON_ENTERPRISE_WIFI_PASSWORD);
     macAddress = WiFi.macAddress();
     eventId = EVENT_ID;
