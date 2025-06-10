@@ -11,7 +11,7 @@ private:
     String _eventId;
     String _detectedTicket;
     String _identifier;
-    static const int _RSSI_THRESHOLD = -70;
+    static const int _RSSI_THRESHOLD = -65;
 
 public:
     BLE();

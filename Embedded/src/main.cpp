@@ -77,7 +77,7 @@ void deactivateFeedback() {
     }
 }
 
-//Turn on the external antenna
+// //Turn on the external antenna
 void turnOnAntenna() {
     pinMode(3, OUTPUT); 
     digitalWrite(3, LOW);  
@@ -92,7 +92,7 @@ void setup() {
     Wire.begin();
 
     // Connect to WiFi
-    // wifi.connectToWPAEnterprise(ENTERPRISE_WIFI_SSID, ucsdUsername, ucsdPassword);
+    //wifi.connectToWPAEnterprise(ENTERPRISE_WIFI_SSID, "", "");
     wifi.connectToWiFi(WIFI_SSID, NON_ENTERPRISE_WIFI_PASSWORD);
     macAddress = WiFi.macAddress();
     eventId = EVENT_ID;

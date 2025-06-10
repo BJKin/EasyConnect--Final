@@ -32,10 +32,9 @@ bool ECE140_MQTT::connectToBroker(String clientID, String eventID) {
 bool ECE140_MQTT::publishAvailability() {
     String fullTopic = "event/" + _eventId + "/available_devices/" + _clientId;
 
-    String payload = "{\"event_id\": " + _eventId +
-                    ", \"device_id\": " + _clientId + 
-
-                    ", \"is_available\": true}";
+    String payload = "{\"event_id\": \"" + String(_eventId) + 
+                    "\", \"device_id\": \"" + String(_clientId) + 
+                    "\", \"is_available\": true}";
     
     if (_mqttClient->publish(fullTopic.c_str(), payload.c_str())) {
         Serial.println("[MQTT] Availability published successfully");
@@ -49,8 +48,8 @@ bool ECE140_MQTT::publishAvailability() {
 bool ECE140_MQTT::publishReceipt(String command, String status) {
     String fullTopic = "device/" + _clientId + "/receipt";
 
-    String payload = "{\"command\": " + command +
-                    ", \"status\": " + status + "}";
+    String payload = "{\"command\": \"" + String(command) +
+                    "\", \"status\": \"" + String(status) + "\"}";
     
     if (_mqttClient->publish(fullTopic.c_str(), payload.c_str())) {
         Serial.println("[MQTT] Receipt published successfully");
@@ -64,9 +63,9 @@ bool ECE140_MQTT::publishReceipt(String command, String status) {
 bool ECE140_MQTT::publishHandshake(String ticketID) {
     String fullTopic = "event/" + _eventId + "/profile_swap";
 
-    String payload = "{\"event_id\": " + _eventId +
-                    ", \"ticket_id\": " + _ticketId +
-                    ", \"ticket_id_to_swap\": " + ticketID + "}";
+    String payload = "{\"event_id\": \"" + String(_eventId) +
+                    "\", \"ticket_id\": \"" + String(_ticketId) +
+                    "\", \"ticket_id_to_swap\": \"" + String(ticketID) + "\"}";
     
     if (_mqttClient->publish(fullTopic.c_str(), payload.c_str())) {
         Serial.println("[MQTT] Profile swap published successfully");

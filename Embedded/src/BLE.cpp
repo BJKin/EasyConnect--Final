@@ -42,8 +42,8 @@ void BLE::onResult(const NimBLEAdvertisedDevice* device) {
         // Serial.println(device->getRSSI() > _RSSI_THRESHOLD);
 
         if(payloadArdStr.substring(2,8) == _identifier && payloadArdStr.substring(8,12) == _eventId && device->getRSSI() > _RSSI_THRESHOLD) {
-            // Serial.println("Detected RSSI: " + String(device->getRSSI()) + " Threshold: " + String(_RSSI_THRESHOLD));
-            // Serial.println("Valid advertisement detected from: " + String(device->getName().c_str()));
+            //Serial.println("Detected RSSI: " + String(device->getRSSI()) + " Threshold: " + String(_RSSI_THRESHOLD));
+            //Serial.println("Valid advertisement detected from: " + String(device->getName().c_str()));
             String detectedTicket = payloadArdStr.substring(12,21);
             String rssi = String(device->getRSSI());
             bool found = false;
